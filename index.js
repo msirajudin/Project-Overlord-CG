@@ -12,9 +12,12 @@ No  NIM Name
 
 
 
-import * as THREE from "three";
-import { OrbitControls } from ".three/addons/controls/OrbitControls.js";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import * as THREE from "Three JS\build\three.module.js";
+import { GLTFLoader } from ".\Three JS\examples\jsm\loaders\GLTFLoader";
+
+// import { OrbitControls } from ".three/addons/controls/OrbitControls.js";
+// import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+// import { GLTFLoader } from "./Three JS/examples/jsm/loaders/GLTFLoader";
 
 //setup scene n renderer (kriteria Scene and Renderer poin 5)
 const scene = new THREE.Scene();
