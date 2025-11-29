@@ -8,12 +8,14 @@ import {
 	LoaderUtils,
 	Mesh,
 	MeshPhongMaterial
-} from 'three';
+} from '../../../build/three.module.js';
 import * as fflate from '../libs/fflate.module.js';
 
 /**
  * Description: Early release of an AMF Loader following the pattern of the
  * example loaders in the three.js project.
+ *
+ * More information about the AMF format: http://amf.wikispaces.com
  *
  * Usage:
  *	const loader = new AMFLoader();
@@ -101,7 +103,7 @@ class AMFLoader extends Loader {
 
 				for ( file in zip ) {
 
-					if ( file.toLowerCase().slice( - 4 ) === '.amf' ) {
+					if ( file.toLowerCase().substr( - 4 ) === '.amf' ) {
 
 						break;
 

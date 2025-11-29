@@ -3,9 +3,8 @@ import {
 	FileLoader,
 	Float32BufferAttribute,
 	Loader,
-	LoaderUtils,
-	Color
-} from 'three';
+	LoaderUtils
+} from '../../../build/three.module.js';
 
 /**
  * Description: A THREE loader for PLY ASCII files (known as the Polygon
@@ -33,7 +32,6 @@ import {
  *
  */
 
-const _color = new Color();
 
 class PLYLoader extends Loader {
 
@@ -90,7 +88,7 @@ class PLYLoader extends Loader {
 
 		function parseHeader( data ) {
 
-			const patternHeader = /^ply([\s\S]*)end_header(\r\n|\r|\n)/;
+			const patternHeader = /ply([\s\S]*)end_header\r?\n/;
 			let headerText = '';
 			let headerLength = 0;
 			const result = patternHeader.exec( data );
@@ -109,7 +107,7 @@ class PLYLoader extends Loader {
 				objInfo: ''
 			};
 
-			const lines = headerText.split( /\r\n|\r|\n/ );
+			const lines = headerText.split( '\n' );
 			let currentElement;
 
 			function make_ply_element_property( propertValues, propertyNameMapping ) {
@@ -283,7 +281,7 @@ class PLYLoader extends Loader {
 
 			}
 
-			const lines = body.split( /\r\n|\r|\n/ );
+			const lines = body.split( '\n' );
 			let currentElement = 0;
 			let currentElementCount = 0;
 
@@ -365,57 +363,25 @@ class PLYLoader extends Loader {
 
 		function handleElement( buffer, elementName, element ) {
 
-			function findAttrName( names ) {
-
-				for ( let i = 0, l = names.length; i < l; i ++ ) {
-
-					const name = names[ i ];
-
-					if ( name in element ) return name;
-
-				}
-
-				return null;
-
-			}
-
-			const attrX = findAttrName( [ 'x', 'px', 'posx' ] ) || 'x';
-			const attrY = findAttrName( [ 'y', 'py', 'posy' ] ) || 'y';
-			const attrZ = findAttrName( [ 'z', 'pz', 'posz' ] ) || 'z';
-			const attrNX = findAttrName( [ 'nx', 'normalx' ] );
-			const attrNY = findAttrName( [ 'ny', 'normaly' ] );
-			const attrNZ = findAttrName( [ 'nz', 'normalz' ] );
-			const attrS = findAttrName( [ 's', 'u', 'texture_u', 'tx' ] );
-			const attrT = findAttrName( [ 't', 'v', 'texture_v', 'ty' ] );
-			const attrR = findAttrName( [ 'red', 'diffuse_red', 'r', 'diffuse_r' ] );
-			const attrG = findAttrName( [ 'green', 'diffuse_green', 'g', 'diffuse_g' ] );
-			const attrB = findAttrName( [ 'blue', 'diffuse_blue', 'b', 'diffuse_b' ] );
-
 			if ( elementName === 'vertex' ) {
 
-				buffer.vertices.push( element[ attrX ], element[ attrY ], element[ attrZ ] );
+				buffer.vertices.push( element.x, element.y, element.z );
 
-				if ( attrNX !== null && attrNY !== null && attrNZ !== null ) {
+				if ( 'nx' in element && 'ny' in element && 'nz' in element ) {
 
-					buffer.normals.push( element[ attrNX ], element[ attrNY ], element[ attrNZ ] );
-
-				}
-
-				if ( attrS !== null && attrT !== null ) {
-
-					buffer.uvs.push( element[ attrS ], element[ attrT ] );
+					buffer.normals.push( element.nx, element.ny, element.nz );
 
 				}
 
-				if ( attrR !== null && attrG !== null && attrB !== null ) {
+				if ( 's' in element && 't' in element ) {
 
-					_color.setRGB(
-						element[ attrR ] / 255.0,
-						element[ attrG ] / 255.0,
-						element[ attrB ] / 255.0
-					).convertSRGBToLinear();
+					buffer.uvs.push( element.s, element.t );
 
-					buffer.colors.push( _color.r, _color.g, _color.b );
+				}
+
+				if ( 'red' in element && 'green' in element && 'blue' in element ) {
+
+					buffer.colors.push( element.red / 255.0, element.green / 255.0, element.blue / 255.0 );
 
 				}
 

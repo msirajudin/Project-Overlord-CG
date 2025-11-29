@@ -6,12 +6,12 @@ import {
 	ShaderChunk,
 	Matrix4,
 	Box3
-} from 'three';
-import { CSMFrustum } from './CSMFrustum.js';
+} from '../../../build/three.module.js';
+import { Frustum } from './Frustum.js';
 import { CSMShader } from './CSMShader.js';
 
 const _cameraToLightMatrix = new Matrix4();
-const _lightSpaceFrustum = new CSMFrustum();
+const _lightSpaceFrustum = new Frustum();
 const _center = new Vector3();
 const _bbox = new Box3();
 const _uniformArray = [];
@@ -37,7 +37,7 @@ export class CSM {
 		this.lightMargin = data.lightMargin || 200;
 		this.customSplitsCallback = data.customSplitsCallback;
 		this.fade = false;
-		this.mainFrustum = new CSMFrustum();
+		this.mainFrustum = new Frustum();
 		this.frustums = [];
 		this.breaks = [];
 
@@ -343,7 +343,6 @@ export class CSM {
 
 		for ( let i = 0; i < this.lights.length; i ++ ) {
 
-			this.parent.remove( this.lights[ i ].target );
 			this.parent.remove( this.lights[ i ] );
 
 		}

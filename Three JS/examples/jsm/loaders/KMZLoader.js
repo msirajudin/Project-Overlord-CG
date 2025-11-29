@@ -3,7 +3,7 @@ import {
 	Group,
 	Loader,
 	LoadingManager
-} from 'three';
+} from '../../../build/three.module.js';
 import { ColladaLoader } from '../loaders/ColladaLoader.js';
 import * as fflate from '../libs/fflate.module.js';
 
@@ -56,7 +56,7 @@ class KMZLoader extends Loader {
 
 			for ( const path in zip ) {
 
-				if ( path.slice( - url.length ) === url ) {
+				if ( path.substr( - url.length ) === url ) {
 
 					return zip[ path ];
 

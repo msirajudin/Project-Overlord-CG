@@ -5,19 +5,21 @@ import {
 	DepthTexture,
 	DstAlphaFactor,
 	DstColorFactor,
+	LinearFilter,
 	MeshDepthMaterial,
 	MeshNormalMaterial,
 	NearestFilter,
 	NoBlending,
 	RGBADepthPacking,
+	RGBAFormat,
 	ShaderMaterial,
 	UniformsUtils,
 	UnsignedShortType,
 	Vector2,
 	WebGLRenderTarget,
 	ZeroFactor
-} from 'three';
-import { Pass, FullScreenQuad } from './Pass.js';
+} from '../../../build/three.module.js';
+import { Pass, FullScreenQuad } from '../postprocessing/Pass.js';
 import { SAOShader } from '../shaders/SAOShader.js';
 import { DepthLimitedBlurShader } from '../shaders/DepthLimitedBlurShader.js';
 import { BlurShaderUtils } from '../shaders/DepthLimitedBlurShader.js';
@@ -62,16 +64,21 @@ class SAOPass extends Pass {
 
 		this.resolution = new Vector2( resolution.x, resolution.y );
 
-		this.saoRenderTarget = new WebGLRenderTarget( this.resolution.x, this.resolution.y );
+		this.saoRenderTarget = new WebGLRenderTarget( this.resolution.x, this.resolution.y, {
+			minFilter: LinearFilter,
+			magFilter: LinearFilter,
+			format: RGBAFormat
+		} );
 		this.blurIntermediateRenderTarget = this.saoRenderTarget.clone();
 		this.beautyRenderTarget = this.saoRenderTarget.clone();
 
 		this.normalRenderTarget = new WebGLRenderTarget( this.resolution.x, this.resolution.y, {
 			minFilter: NearestFilter,
-			magFilter: NearestFilter
+			magFilter: NearestFilter,
+			format: RGBAFormat
 		} );
 		this.depthRenderTarget = this.normalRenderTarget.clone();
-
+		
 		let depthTexture;
 
 		if ( this.supportsDepthTextureExtension ) {

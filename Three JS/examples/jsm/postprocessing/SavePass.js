@@ -1,9 +1,11 @@
 import {
+	LinearFilter,
+	RGBFormat,
 	ShaderMaterial,
 	UniformsUtils,
 	WebGLRenderTarget
-} from 'three';
-import { Pass, FullScreenQuad } from './Pass.js';
+} from '../../../build/three.module.js';
+import { Pass, FullScreenQuad } from '../postprocessing/Pass.js';
 import { CopyShader } from '../shaders/CopyShader.js';
 
 class SavePass extends Pass {
@@ -32,7 +34,7 @@ class SavePass extends Pass {
 
 		if ( this.renderTarget === undefined ) {
 
-			this.renderTarget = new WebGLRenderTarget( window.innerWidth, window.innerHeight );
+			this.renderTarget = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter, magFilter: LinearFilter, format: RGBFormat } );
 			this.renderTarget.texture.name = 'SavePass.rt';
 
 		}
