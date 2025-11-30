@@ -1,29 +1,19 @@
 /* Group Forming - Group 3
-
 No  NIM Name
-
 1   2702309984  Muhammad Sirajudin Suyuti
-
 2   2702309901  Angel Felicia
-
 3   2702216002  Fredrick Willson Makmun
-
 4   2702316176  Dimas Alifio Paramudya Purboyo */
 
-
-
-import * as THREE from "Three JS\build\three.module.js";
-import { GLTFLoader } from ".\Three JS\examples\jsm\loaders\GLTFLoader";
-
-// import { OrbitControls } from ".three/addons/controls/OrbitControls.js";
-// import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-// import { GLTFLoader } from "./Three JS/examples/jsm/loaders/GLTFLoader";
+import * as THREE from "./Three JS/build/three.module.js";
+import { OrbitControls } from "./Three JS/examples/jsm/controls/OrbitControls.js";
+import { GLTFLoader } from "./Three JS/examples/jsm/loaders/GLTFLoader.js";
 
 //setup scene n renderer (kriteria Scene and Renderer poin 5)
 const scene = new THREE.Scene();
 
 //sementara use warna solid karena SKYBOX msh ERROR
-scene.background = new THREE.Color(0x87CEEB)
+scene.background = new THREE.Color(0x87CEEB);
 
 const renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -48,32 +38,11 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 0, 0);
 controls.update();
 
-//skybox (kriteria Skybox poin 5)
-// const loader = new THREE.CubeTextureLoader();
-// const texture = loader.load([
-//     './assets/skybox/side-1.png',
-//     './assets/skybox/side-3.png',
-//     './assets/skybox/top.png',    
-//     './assets/skybox/bottom.png',
-//     './assets/skybox/side-4.png',
-//     './assets/skybox/side-2.png'  
-// ]);
-// scene.background = texture;
-
-//check debugging
-// scene.background = new THREE.Color(0x87CEEB)
-// const testBox = new THREE.Mesh(
-//     new THREE.BoxGeometry(1, 1, 1),
-//     new THREE.MeshBasicMaterial({color:  0xff0000})
-// );
-// scene.add(testBox);
-
-//check debugging
-
 //Lights kriteria poin 10
 //ambientLight
 const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.7);
 scene.add(ambientLight);
+
 //spotLight
 const spotLight = new THREE.SpotLight(0xFFFFFF, 1.2);
 spotLight.position.set(0, 10, 0);
@@ -109,7 +78,7 @@ gltfLoader.load('./assets/models/momonga_ainz_ooal_gown/scene.gltf',
     undefined, (error) => {
         console.error("gagal mengsummon Momonga :(", error);
     }
-)
+);
 
 window.addEventListener('resize', function(){
     renderer.setSize(window.innerWidth, window.innerHeight);
