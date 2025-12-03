@@ -9,17 +9,17 @@ import * as THREE from "./Three JS/build/three.module.js";
 import { OrbitControls } from "./Three JS/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "./Three JS/examples/jsm/loaders/GLTFLoader.js";
 
-// flob var utk dark warrior
+// glob var utk dark warrior
 let momongaObj = null;
 const MOVEMENT_SPEED = 0.1; 
 const ROTATION_SPEED = 0.05; 
 
-// flob var utk Spell Circle
+// glob var utk Spell Circle
 let spellCircle = null;
 let spellLight = null;
 let isSpellActive = false;
 
-// glob var utk Hamsuke Interaction (Raycast)
+// flob var utk Hamsuke Interaction (Raycast)
 let hamsukeBodyMesh = null; 
 let isHappy = true; 
 const raycaster = new THREE.Raycaster();
@@ -146,24 +146,24 @@ function createGround() {
 }
 createGround(); 
 
-// Hamsuke atau hamster kotak2
+// Hamsuke
 function createHamsuke() {
     const hamsukeGroup = new THREE.Group();
 
-    // 1. Load Textures (Happy & Sad)
+    // 1. Load Textures
     const texLoader = new THREE.TextureLoader();
     const texFrontHappy = texLoader.load('./assets/textures/hamsuke/front_happy.png');
     const texFrontSad = texLoader.load('./assets/textures/hamsuke/front_sad.png');
     const texSide = texLoader.load('./assets/textures/hamsuke/side.png');
     const texTopBack = texLoader.load('./assets/textures/hamsuke/top&back.png');
     
-    // 2. BODY (Balik ke Size Lama 3, 2.5, 3 yang kamu suka)
+    // 2. Body
     const bodyMaterials = [
         new THREE.MeshPhongMaterial({ map: texSide }),        
         new THREE.MeshPhongMaterial({ map: texSide }),      
         new THREE.MeshPhongMaterial({ map: texTopBack }),     
         new THREE.MeshPhongMaterial({ map: texTopBack }),    
-        new THREE.MeshPhongMaterial({ map: texFrontHappy }), // Index 4: Wajah     
+        new THREE.MeshPhongMaterial({ map: texFrontHappy }),     
         new THREE.MeshPhongMaterial({ map: texTopBack })     
     ];
 
@@ -172,16 +172,15 @@ function createHamsuke() {
     hamsukeBodyMesh.castShadow = true;
     hamsukeBodyMesh.receiveShadow = true;
     
-    //agar bisa diswap
     hamsukeBodyMesh.userData = {
         texHappy: texFrontHappy,
         texSad: texFrontSad
     };
     hamsukeGroup.add(hamsukeBodyMesh);
 
-    //2 telinga hamster
+    // 2 Telinga
     const earGeo = new THREE.ConeGeometry(0.2, 0.7, 128); 
-    // Kuping Kiri
+    
     const earMatLeft = new THREE.MeshPhongMaterial({ color: 0x6B6860 }); 
     const earL = new THREE.Mesh(earGeo, earMatLeft);
     earL.position.set(-1.2, 1.5, 1.3); 
@@ -189,7 +188,6 @@ function createHamsuke() {
     earL.castShadow = true;
     hamsukeGroup.add(earL);
 
-    // Kuping Kanan
     const earMatRight = new THREE.MeshPhongMaterial({ color: 0x6B6860 }); 
     const earR = new THREE.Mesh(earGeo, earMatRight);
     earR.position.set(1.2, 1.5, 1.3);
@@ -197,7 +195,7 @@ function createHamsuke() {
     earR.castShadow = true;
     hamsukeGroup.add(earR);
 
-    //tail Dik Soal: Width 0.6, Height 2.8, Depth 0.6
+    // Tail
     const tailGeo = new THREE.BoxGeometry(0.6, 2.8, 0.6);
     const tailMat = new THREE.MeshPhongMaterial({ color: 0x023020 }); 
     const tailMesh = new THREE.Mesh(tailGeo, tailMat);
@@ -211,10 +209,62 @@ function createHamsuke() {
     return hamsukeGroup;
 }
 const hamsuke = createHamsuke();
-//posisi hamster
 hamsuke.position.set(1.8, 1.3, -1.95); 
 hamsuke.rotation.set(0, 0.5, 0); 
 scene.add(hamsuke);
+
+
+// Pohon #StopTebangPohonMasal = longsor
+function createTrees() {
+    const treeGroup = new THREE.Group();
+
+    const texLoader = new THREE.TextureLoader();
+    const trunkTex = texLoader.load('./assets/textures/tree/chinese_cedar_bark_diff_1k.jpg');
+
+    const trunkGeo = new THREE.CylinderGeometry(0.6, 0.6, 3, 32);
+    const trunkMat = new THREE.MeshStandardMaterial({
+        map: trunkTex,
+        color: 0xFFFFFF
+    });
+
+    //sepsifikasi sesuai permintaan soal
+    const botLeafGeo = new THREE.ConeGeometry(3, 4, 32);
+    const topLeafGeo = new THREE.ConeGeometry(2.1, 2.8, 32);
+    const leafMat = new THREE.MeshStandardMaterial({ color: 0x374F2F });
+
+    const positions = [
+        { x: -5, z: -5 },
+        { x: 7, z: -6 },
+        { x: -8, z: 8 }
+    ];
+
+    positions.forEach(pos => {
+        // 1. Trunk (Y=1.5)
+        const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+        trunk.position.set(pos.x, 1.5, pos.z);
+        trunk.castShadow = true;
+        trunk.receiveShadow = true;
+        treeGroup.add(trunk);
+
+        // 2. Bottom Leaves (Y=4)
+        const bLeaf = new THREE.Mesh(botLeafGeo, leafMat);
+        bLeaf.position.set(pos.x, 4, pos.z);
+        bLeaf.castShadow = true;
+        bLeaf.receiveShadow = true;
+        treeGroup.add(bLeaf);
+
+        // 3. Top Leaves (Y=6)
+        const tLeaf = new THREE.Mesh(topLeafGeo, leafMat);
+        tLeaf.position.set(pos.x, 6, pos.z);
+        tLeaf.castShadow = true;
+        tLeaf.receiveShadow = true;
+        treeGroup.add(tLeaf);
+    });
+
+    return treeGroup;
+}
+const trees = createTrees();
+scene.add(trees);
 
 
 // spell circle
@@ -278,15 +328,14 @@ window.addEventListener('click', (event) => {
     if(hamsukeBodyMesh) {
         const intersects = raycaster.intersectObject(hamsukeBodyMesh);
         if(intersects.length > 0) {
-            // KLIK KENA BODY! -> Toggle
             isHappy = !isHappy;
             
             if(isHappy) {
                 hamsukeBodyMesh.material[4].map = hamsukeBodyMesh.userData.texHappy;
-                console.log("Hamsuke is Happy! :D");
+                console.log("Hamsuke senang! :D");
             } else {
                 hamsukeBodyMesh.material[4].map = hamsukeBodyMesh.userData.texSad;
-                console.log("Hamsuke is Sad... :(");
+                console.log("Hamsuke sedih... :(");
             }
             hamsukeBodyMesh.material[4].needsUpdate = true;
         }
