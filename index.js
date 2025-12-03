@@ -13,7 +13,18 @@ import { GLTFLoader } from "./Three JS/examples/jsm/loaders/GLTFLoader.js";
 const scene = new THREE.Scene();
 
 //sementara use warna solid karena SKYBOX msh ERROR
-scene.background = new THREE.Color(0x87CEEB);
+// scene.background = new THREE.Color(0x87CEEB);
+
+const loader = new THREE.CubeTextureLoader();
+const texture = loader.load([
+   './assets/skybox/side-1.png', 
+    './assets/skybox/side-3.png', 
+    './assets/skybox/top.png',   
+    './assets/skybox/bottom.png', 
+    './assets/skybox/side-4.png', 
+    './assets/skybox/side-2.png'
+]);
+scene.background = texture;
 
 const renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
