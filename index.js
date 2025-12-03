@@ -14,21 +14,29 @@ let momongaObj = null;
 const MOVEMENT_SPEED = 0.1; 
 const ROTATION_SPEED = 0.05; 
 
+// flob var utk Spell Circle
+let spellCircle = null;
+let spellLight = null;
+let isSpellActive = false;
+
+// glob var utk Hamsuke Interaction (Raycast)
+let hamsukeBodyMesh = null; 
+let isHappy = true; 
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
 // state tombol keyboard
 const keys = {
     w: false, a: false, s: false, d: false,
     q: false, e: false
 };
 
-let currentCamera; // Kamera yang sedang aktif dirender
+let currentCamera;
 let thirdPersonCam;
-let firstPersonCam; // Kamera baru
+let firstPersonCam;
 
-//setup scene n renderer (kriteria Scene and Renderer poin 5)
+//setup scene n renderer
 const scene = new THREE.Scene();
-
-//sementara use warna solid karena SKYBOX msh ERROR
-// scene.background = new THREE.Color(0x87CEEB);
 
 const loader = new THREE.CubeTextureLoader();
 const texture = loader.load([
@@ -46,72 +54,57 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;
 document.body.appendChild(renderer.domElement);
-//^beberapa disetting sesuai permintaan di soal
 
-//setup camera (kriteria Camera poin 10)
-// --- CAMERA SETUP (Revisi Dual Camera) ---
-
-// a. Third Person Camera (Setup Lama)
+//camera setup
 thirdPersonCam = new THREE.PerspectiveCamera(
     75, window.innerWidth / window.innerHeight, 0.1, 1000
 );
 thirdPersonCam.position.set(6, 3, 5);
 thirdPersonCam.lookAt(0, 0, 0);
 
-// b. First Person Camera (Setup Baru)
 firstPersonCam = new THREE.PerspectiveCamera(
     75, window.innerWidth / window.innerHeight, 0.1, 1000
 );
-// Posisi relatif terhadap kepala Momonga (y=1.8)
 firstPersonCam.position.set(0, 100, 13); 
-// Rotation nanti dihandle pas attach ke momonga
 
-// Set Default Camera
 currentCamera = thirdPersonCam;
 
-// Orbit Controls (Hanya untuk Third Person)
 const controls = new OrbitControls(thirdPersonCam, renderer.domElement);
 controls.target.set(0, 0, 0);
 controls.update();
 
-//Lights kriteria poin 10
-//ambientLight
+//lights setup
 const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.7);
 scene.add(ambientLight);
 
-//spotLight
 const spotLight = new THREE.SpotLight(0xFFFFFF, 1.2);
 spotLight.position.set(0, 10, 0);
 spotLight.castShadow = true;
 spotLight.shadow.mapSize.width = 2048;
 spotLight.shadow.mapSize.height = 2048;
+spotLight.distance = 1000; 
 scene.add(spotLight);
 
-//directionalLight
 const dirLight = new THREE.DirectionalLight(0xFFFFEE, 0.5);
 dirLight.position.set(5, 2, 8);
 scene.add(dirLight);
 
-//momonga loadModel
+spellLight = new THREE.PointLight(0xFFD700, 2, 3);
+spellLight.visible = false; 
+scene.add(spellLight);
+
+// momonga loadModel
 const gltfLoader = new GLTFLoader();
 gltfLoader.load('./assets/models/momonga_ainz_ooal_gown/scene.gltf',
     (gltf) => {
         const model = gltf.scene;
-        
-        momongaObj = model; // simpan ke var global
+        momongaObj = model;
 
-        //posisi kuubah ke -0.18 krn kalau sesuai soal -0.01 agak melayang kak.
-        model.position.set(0, -0.18, 3); 
-        
+        model.position.set(0, -0.01, 3); 
         model.scale.set(0.01, 0.01, 0.01);
         model.rotation.set(0, Math.PI/2, 0);
 
-        // --- ATTACH CAMERA TO MOMONGA ---
-        // Masukkan kamera FPS ke dalam grup Momonga biar ikut gerak
         momongaObj.add(firstPersonCam);
-
-        // Fix rotasi kamera biar ga liat kuping (putar 90 derajat dr posisi model)
-        // Kita paksa kameranya menghadap depan (Local Axis)
         firstPersonCam.rotation.set(0, -Math.PI, 0);
 
         model.traverse((node) => {
@@ -128,124 +121,202 @@ gltfLoader.load('./assets/models/momonga_ainz_ooal_gown/scene.gltf',
     }
 );
 
-//Ground/Tanah
+// Ground
 function createGround() {
-    const geo = new THREE.BoxGeometry(25, 25); 
+    const geo = new THREE.BoxGeometry(25, 2, 25); 
     const txtLoader = new THREE.TextureLoader();
     
     const grassTex = txtLoader.load('./assets/textures/grass/rocky_terrain_02_diff_1k.jpg');
-    
     grassTex.wrapS = THREE.RepeatWrapping;
     grassTex.wrapT = THREE.RepeatWrapping;
     grassTex.repeat.set(20, 20); 
 
     const mat = new THREE.MeshStandardMaterial({ 
         map: grassTex,
-        roughness: 0.8 
+        roughness: 0.8,
+        color: 0xFFFFFF 
     });
 
     const mesh = new THREE.Mesh(geo, mat);
-    mesh.rotation.x = -Math.PI / 2; 
+    mesh.position.set(0, -1, 0);
     mesh.receiveShadow = true;      
-    mesh.position.set(0, -1, 0)
 
     scene.add(mesh);
     console.log("Ground muncul");
-
 }
 createGround(); 
 
-///Hamsuke atau Hamster
+// Hamsuke atau hamster kotak2
 function createHamsuke() {
     const hamsukeGroup = new THREE.Group();
 
-
+    // 1. Load Textures (Happy & Sad)
     const texLoader = new THREE.TextureLoader();
-    const texFront = texLoader.load('./assets/textures/hamsuke/front_happy.png');
+    const texFrontHappy = texLoader.load('./assets/textures/hamsuke/front_happy.png');
+    const texFrontSad = texLoader.load('./assets/textures/hamsuke/front_sad.png');
     const texSide = texLoader.load('./assets/textures/hamsuke/side.png');
     const texTopBack = texLoader.load('./assets/textures/hamsuke/top&back.png');
-   
+    
+    // 2. BODY (Balik ke Size Lama 3, 2.5, 3 yang kamu suka)
     const bodyMaterials = [
-        new THREE.MeshStandardMaterial({ map: texSide }),        
-        new THREE.MeshStandardMaterial({ map: texSide }),      
-        new THREE.MeshStandardMaterial({ map: texTopBack }),    
-        new THREE.MeshStandardMaterial({ map: texTopBack }),    
-        new THREE.MeshStandardMaterial({ map: texFront }),      
-        new THREE.MeshStandardMaterial({ map: texTopBack })    
+        new THREE.MeshPhongMaterial({ map: texSide }),        
+        new THREE.MeshPhongMaterial({ map: texSide }),      
+        new THREE.MeshPhongMaterial({ map: texTopBack }),     
+        new THREE.MeshPhongMaterial({ map: texTopBack }),    
+        new THREE.MeshPhongMaterial({ map: texFrontHappy }), // Index 4: Wajah     
+        new THREE.MeshPhongMaterial({ map: texTopBack })     
     ];
 
+    const bodyGeo = new THREE.BoxGeometry(3, 2.5, 3); 
+    hamsukeBodyMesh = new THREE.Mesh(bodyGeo, bodyMaterials);
+    hamsukeBodyMesh.castShadow = true;
+    hamsukeBodyMesh.receiveShadow = true;
+    
+    //agar bisa diswap
+    hamsukeBodyMesh.userData = {
+        texHappy: texFrontHappy,
+        texSad: texFrontSad
+    };
+    hamsukeGroup.add(hamsukeBodyMesh);
 
-    const bodyGeo = new THREE.BoxGeometry(3, 2.5, 3);
-    const bodyMesh = new THREE.Mesh(bodyGeo, bodyMaterials);
-    bodyMesh.castShadow = true;
-    bodyMesh.receiveShadow = true;
-    hamsukeGroup.add(bodyMesh);
-
-
-    const earGeo = new THREE.ConeGeometry(0.2,0.7,128);
-    // kuping kiri
-    const earMatLeft = new THREE.MeshStandardMaterial({ color: 0x6B6860 });
+    //2 telinga hamster
+    const earGeo = new THREE.ConeGeometry(0.2, 0.7, 128); 
+    // Kuping Kiri
+    const earMatLeft = new THREE.MeshPhongMaterial({ color: 0x6B6860 }); 
     const earL = new THREE.Mesh(earGeo, earMatLeft);
-    earL.position.set(-1.2, 1.5, 1.3);
-    earL.rotation.set(0, 0, 0.2);    
+    earL.position.set(-1.2, 1.5, 1.3); 
+    earL.rotation.set(0, 0, 0.2);     
     earL.castShadow = true;
     hamsukeGroup.add(earL);
 
-
-    // kuping kanan
-    const earMatRight = new THREE.MeshStandardMaterial({ color: 0x6B6860 });
+    // Kuping Kanan
+    const earMatRight = new THREE.MeshPhongMaterial({ color: 0x6B6860 }); 
     const earR = new THREE.Mesh(earGeo, earMatRight);
-    earR.position.set(1.2,1.5,1.3);
-    earR.rotation.set(0,0,-0.2);    
+    earR.position.set(1.2, 1.5, 1.3);
+    earR.rotation.set(0, 0, -0.2);    
     earR.castShadow = true;
     hamsukeGroup.add(earR);
 
-
-    // ekor
-    const tailGeo = new THREE.BoxGeometry(0.8,0.8, 1.4);
-    const tailMat = new THREE.MeshStandardMaterial({ color: 0x023020 });
+    //tail Dik Soal: Width 0.6, Height 2.8, Depth 0.6
+    const tailGeo = new THREE.BoxGeometry(0.6, 2.8, 0.6);
+    const tailMat = new THREE.MeshPhongMaterial({ color: 0x023020 }); 
     const tailMesh = new THREE.Mesh(tailGeo, tailMat);
-    tailMesh.position.set(0.1, 1.7, -1.3);
-    tailMesh.rotation.set(-Math.PI / 2,0,0);
+    
+    tailMesh.position.set(0.1, 0.5, -1.75);
+    tailMesh.rotation.set(Math.PI, 0, 0);
+    
     tailMesh.castShadow = true;
-    tailMesh.receiveShadow = true;
     hamsukeGroup.add(tailMesh);
-
 
     return hamsukeGroup;
 }
-
-
 const hamsuke = createHamsuke();
-
-hamsuke.position.set(1.8, 0.75, -1.95); 
+//posisi hamster
+hamsuke.position.set(1.8, 1.3, -1.95); 
 hamsuke.rotation.set(0, 0.5, 0); 
 scene.add(hamsuke);
 
+
+// spell circle
+function createSpellCircle() {
+    const spellGroup = new THREE.Group();
+
+    const spellMat = new THREE.MeshPhongMaterial({
+        color: 0xDAA520,
+        emissive: 0xFFCC00,
+        emissiveIntensity: 2,
+        shininess: 100,
+        transparent: true,
+        opacity: 0.8,
+        side: THREE.DoubleSide
+    });
+
+    const innerGeo = new THREE.RingGeometry(1, 1.2, 64);
+    const innerRing = new THREE.Mesh(innerGeo, spellMat);
+    innerRing.rotation.set(-Math.PI / 2, 0, 0); 
+    innerRing.position.set(0, 0.02, 0); 
+    spellGroup.add(innerRing);
+
+    const outerGeo = new THREE.RingGeometry(1.8, 2, 64);
+    const outerRing = new THREE.Mesh(outerGeo, spellMat);
+    outerRing.rotation.set(-Math.PI / 2, 0, 0);
+    outerRing.position.set(0, 0.02, 0);
+    spellGroup.add(outerRing);
+
+    const pointerGeo = new THREE.BoxGeometry(0.05, 4, 0.01);
+    const p1 = new THREE.Mesh(pointerGeo, spellMat);
+    p1.rotation.set(Math.PI/2, 0, Math.PI/2); 
+    p1.position.set(0, 0.02, 0); 
+    spellGroup.add(p1);
+
+    const p2 = new THREE.Mesh(pointerGeo, spellMat);
+    p2.rotation.set(Math.PI/2, 0, 0);
+    p2.position.set(0, 0.02, 0);
+    spellGroup.add(p2);
+
+    spellGroup.visible = false; 
+    return spellGroup;
+}
+spellCircle = createSpellCircle();
+scene.add(spellCircle);
+
+
+// event listener
 window.addEventListener('resize', function(){
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 });
 
-// event listener keyboard
+// listener utk raycast happy/sad
+window.addEventListener('click', (event) => {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, currentCamera);
+
+    if(hamsukeBodyMesh) {
+        const intersects = raycaster.intersectObject(hamsukeBodyMesh);
+        if(intersects.length > 0) {
+            // KLIK KENA BODY! -> Toggle
+            isHappy = !isHappy;
+            
+            if(isHappy) {
+                hamsukeBodyMesh.material[4].map = hamsukeBodyMesh.userData.texHappy;
+                console.log("Hamsuke is Happy! :D");
+            } else {
+                hamsukeBodyMesh.material[4].map = hamsukeBodyMesh.userData.texSad;
+                console.log("Hamsuke is Sad... :(");
+            }
+            hamsukeBodyMesh.material[4].needsUpdate = true;
+        }
+    }
+});
+
 window.addEventListener('keydown', (event) => {
-    const key = event.key.toLowerCase(); // biar case insensitive (W or w sama aja)
+    const key = event.key.toLowerCase(); 
     
-    // 1. Logic Switch Kamera (V)
     if (key === 'v') { 
         if (currentCamera === thirdPersonCam) {
             currentCamera = firstPersonCam;
-            controls.enabled = false; // Matikan orbit kalau lagi FPS
+            controls.enabled = false; 
             console.log("Switched to First Person");
         } else {
             currentCamera = thirdPersonCam;
-            controls.enabled = true; // Nyalakan orbit lagi
+            controls.enabled = true; 
             console.log("Switched to Third Person");
         }
     }
 
-    // 2. Logic Movement (WASD) - Disatukan biar gak ketimpa
+    if (event.code === 'Space') { 
+        if (spellCircle && spellLight) {
+            isSpellActive = !isSpellActive; 
+            spellCircle.visible = isSpellActive;
+            spellLight.visible = isSpellActive;
+            console.log("Spell Active:", isSpellActive);
+        }
+    }
+
     if (keys.hasOwnProperty(key)) {
         keys[key] = true;
     }
@@ -258,25 +329,36 @@ window.addEventListener('keyup', (event) => {
     }
 });
 
+
+//animation
 function animate(){
     requestAnimationFrame(animate);
     
-    // movementLogic, gerakan dark warrior
     if (momongaObj) {
-        // rotasi (Q/E)
         if (keys.q) momongaObj.rotation.y += ROTATION_SPEED;
         if (keys.e) momongaObj.rotation.y -= ROTATION_SPEED;
+        if (keys.w) momongaObj.translateZ(MOVEMENT_SPEED);  
+        if (keys.s) momongaObj.translateZ(-MOVEMENT_SPEED); 
+        if (keys.a) momongaObj.translateX(MOVEMENT_SPEED);  
+        if (keys.d) momongaObj.translateX(-MOVEMENT_SPEED); 
 
-        // gerakan (W/A/S/D)
-        if (keys.w) momongaObj.translateZ(MOVEMENT_SPEED);  //maju
-        if (keys.s) momongaObj.translateZ(-MOVEMENT_SPEED); //mundur
-        if (keys.a) momongaObj.translateX(MOVEMENT_SPEED);  //kiri
-        if (keys.d) momongaObj.translateX(-MOVEMENT_SPEED); //kanan
+        if (spellCircle && spellLight) {
+            spellCircle.position.x = momongaObj.position.x;
+            spellCircle.position.z = momongaObj.position.z;
+
+            spellLight.position.set(
+                momongaObj.position.x, 
+                momongaObj.position.y + 0.5, 
+                momongaObj.position.z
+            );
+            
+            if(isSpellActive) {
+                spellCircle.rotation.y += 0.02;
+            }
+        }
     }
 
     controls.update();
-    
-    // render kamera yg lagi aktif aja
     renderer.render(scene, currentCamera);
 }
 
