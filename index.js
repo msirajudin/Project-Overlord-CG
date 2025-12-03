@@ -8,6 +8,8 @@ No  NIM Name
 import * as THREE from "./Three JS/build/three.module.js";
 import { OrbitControls } from "./Three JS/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "./Three JS/examples/jsm/loaders/GLTFLoader.js";
+import { FontLoader } from "./Three JS/examples/jsm/loaders/FontLoader.js";
+import { TextGeometry } from "./Three JS/examples/jsm/geometries/TextGeometry.js";
 
 // glob var utk dark warrior
 let momongaObj = null;
@@ -19,7 +21,7 @@ let spellCircle = null;
 let spellLight = null;
 let isSpellActive = false;
 
-// flob var utk Hamsuke Interaction (Raycast)
+// glob var utk Hamsuke Interaction (Raycast)
 let hamsukeBodyMesh = null; 
 let isHappy = true; 
 const raycaster = new THREE.Raycaster();
@@ -93,7 +95,7 @@ spellLight = new THREE.PointLight(0xFFD700, 2, 3);
 spellLight.visible = false; 
 scene.add(spellLight);
 
-// momonga loadModel
+// momonga load Model
 const gltfLoader = new GLTFLoader();
 gltfLoader.load('./assets/models/momonga_ainz_ooal_gown/scene.gltf',
     (gltf) => {
@@ -140,7 +142,6 @@ function createGround() {
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(0, -1, 0);
     mesh.receiveShadow = true;      
-
     scene.add(mesh);
     console.log("Ground muncul");
 }
@@ -150,14 +151,14 @@ createGround();
 function createHamsuke() {
     const hamsukeGroup = new THREE.Group();
 
-    // 1. Load Textures
+    //Load Textures
     const texLoader = new THREE.TextureLoader();
     const texFrontHappy = texLoader.load('./assets/textures/hamsuke/front_happy.png');
     const texFrontSad = texLoader.load('./assets/textures/hamsuke/front_sad.png');
     const texSide = texLoader.load('./assets/textures/hamsuke/side.png');
     const texTopBack = texLoader.load('./assets/textures/hamsuke/top&back.png');
     
-    // 2. Body
+    //Body
     const bodyMaterials = [
         new THREE.MeshPhongMaterial({ map: texSide }),        
         new THREE.MeshPhongMaterial({ map: texSide }),      
@@ -178,9 +179,8 @@ function createHamsuke() {
     };
     hamsukeGroup.add(hamsukeBodyMesh);
 
-    // 2 Telinga
+    //Telinga
     const earGeo = new THREE.ConeGeometry(0.2, 0.7, 128); 
-    
     const earMatLeft = new THREE.MeshPhongMaterial({ color: 0x6B6860 }); 
     const earL = new THREE.Mesh(earGeo, earMatLeft);
     earL.position.set(-1.2, 1.5, 1.3); 
@@ -195,17 +195,15 @@ function createHamsuke() {
     earR.castShadow = true;
     hamsukeGroup.add(earR);
 
-    // Tail
+    //Tail
     const tailGeo = new THREE.BoxGeometry(0.6, 2.8, 0.6);
     const tailMat = new THREE.MeshPhongMaterial({ color: 0x023020 }); 
     const tailMesh = new THREE.Mesh(tailGeo, tailMat);
     
     tailMesh.position.set(0.1, 0.5, -1.75);
-    tailMesh.rotation.set(Math.PI, 0, 0);
-    
+    tailMesh.rotation.set(Math.PI, 0, 0);    
     tailMesh.castShadow = true;
     hamsukeGroup.add(tailMesh);
-
     return hamsukeGroup;
 }
 const hamsuke = createHamsuke();
@@ -213,14 +211,11 @@ hamsuke.position.set(1.8, 1.3, -1.95);
 hamsuke.rotation.set(0, 0.5, 0); 
 scene.add(hamsuke);
 
-
 // Pohon #StopTebangPohonMasal = longsor
 function createTrees() {
     const treeGroup = new THREE.Group();
-
     const texLoader = new THREE.TextureLoader();
     const trunkTex = texLoader.load('./assets/textures/tree/chinese_cedar_bark_diff_1k.jpg');
-
     const trunkGeo = new THREE.CylinderGeometry(0.6, 0.6, 3, 32);
     const trunkMat = new THREE.MeshStandardMaterial({
         map: trunkTex,
@@ -231,7 +226,6 @@ function createTrees() {
     const botLeafGeo = new THREE.ConeGeometry(3, 4, 32);
     const topLeafGeo = new THREE.ConeGeometry(2.1, 2.8, 32);
     const leafMat = new THREE.MeshStandardMaterial({ color: 0x374F2F });
-
     const positions = [
         { x: -5, z: -5 },
         { x: 7, z: -6 },
@@ -239,33 +233,61 @@ function createTrees() {
     ];
 
     positions.forEach(pos => {
-        // 1. Trunk (Y=1.5)
+        //Trunk
         const trunk = new THREE.Mesh(trunkGeo, trunkMat);
         trunk.position.set(pos.x, 1.5, pos.z);
         trunk.castShadow = true;
         trunk.receiveShadow = true;
         treeGroup.add(trunk);
 
-        // 2. Bottom Leaves (Y=4)
+        //Bottom Leaves
         const bLeaf = new THREE.Mesh(botLeafGeo, leafMat);
         bLeaf.position.set(pos.x, 4, pos.z);
         bLeaf.castShadow = true;
         bLeaf.receiveShadow = true;
         treeGroup.add(bLeaf);
 
-        // 3. Top Leaves (Y=6)
+        //Top Leaves
         const tLeaf = new THREE.Mesh(topLeafGeo, leafMat);
         tLeaf.position.set(pos.x, 6, pos.z);
         tLeaf.castShadow = true;
         tLeaf.receiveShadow = true;
         treeGroup.add(tLeaf);
     });
-
     return treeGroup;
 }
 const trees = createTrees();
 scene.add(trees);
 
+// 3d text overlord)
+function create3DText() {
+    const fontLoader = new FontLoader();
+    fontLoader.load('./Three JS/examples/fonts/helvetiker_bold.typeface.json', (font) => {
+        
+        const textGeo = new TextGeometry('OVerlord', {
+            font: font,
+            size: 1,
+            height: 0.2,
+            curveSegments: 12,
+            bevelEnabled: false 
+        });
+        const textMat = new THREE.MeshStandardMaterial({
+            color: 0xFFFFFF
+        });
+        const textMesh = new THREE.Mesh(textGeo, textMat);
+        
+        // posisi n rotasi sesuai soal
+        textMesh.position.set(-6, 4, 5);
+        textMesh.rotation.set(0, Math.PI / 2, 0);
+        
+        textMesh.castShadow = true;
+        textMesh.receiveShadow = true;
+
+        scene.add(textMesh);
+        console.log("Text Overlord muncul");
+    });
+}
+create3DText();
 
 // spell circle
 function createSpellCircle() {
@@ -322,7 +344,6 @@ window.addEventListener('resize', function(){
 window.addEventListener('click', (event) => {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
     raycaster.setFromCamera(mouse, currentCamera);
 
     if(hamsukeBodyMesh) {
@@ -349,23 +370,21 @@ window.addEventListener('keydown', (event) => {
         if (currentCamera === thirdPersonCam) {
             currentCamera = firstPersonCam;
             controls.enabled = false; 
-            console.log("Switched to First Person");
+            console.log("Ganti ke First Person");
         } else {
             currentCamera = thirdPersonCam;
             controls.enabled = true; 
-            console.log("Switched to Third Person");
+            console.log("Ganti ke Third Person");
         }
     }
-
     if (event.code === 'Space') { 
         if (spellCircle && spellLight) {
             isSpellActive = !isSpellActive; 
             spellCircle.visible = isSpellActive;
             spellLight.visible = isSpellActive;
-            console.log("Spell Active:", isSpellActive);
+            console.log("Spell Menyala..!:", isSpellActive);
         }
     }
-
     if (keys.hasOwnProperty(key)) {
         keys[key] = true;
     }
@@ -377,7 +396,6 @@ window.addEventListener('keyup', (event) => {
         keys[key] = false;
     }
 });
-
 
 //animation
 function animate(){
@@ -394,21 +412,17 @@ function animate(){
         if (spellCircle && spellLight) {
             spellCircle.position.x = momongaObj.position.x;
             spellCircle.position.z = momongaObj.position.z;
-
             spellLight.position.set(
                 momongaObj.position.x, 
                 momongaObj.position.y + 0.5, 
                 momongaObj.position.z
             );
-            
             if(isSpellActive) {
                 spellCircle.rotation.y += 0.02;
             }
         }
     }
-
     controls.update();
     renderer.render(scene, currentCamera);
 }
-
 animate();
