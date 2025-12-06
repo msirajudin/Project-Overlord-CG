@@ -124,7 +124,7 @@ gltfLoader.load('./assets/models/momonga_ainz_ooal_gown/scene.gltf',
     }
 );
 
-// Ground
+// gorund
 function createGround() {
     const geo = new THREE.BoxGeometry(25, 2, 25); 
     const txtLoader = new THREE.TextureLoader();
@@ -234,21 +234,21 @@ function createTrees() {
     ];
 
     positions.forEach(pos => {
-        //Trunk
+        //trunk
         const trunk = new THREE.Mesh(trunkGeo, trunkMat);
         trunk.position.set(pos.x, 1.5, pos.z);
         trunk.castShadow = true;
         trunk.receiveShadow = true;
         treeGroup.add(trunk);
 
-        //Bottom Leaves
+        //bottom leaves
         const bLeaf = new THREE.Mesh(botLeafGeo, leafMat);
         bLeaf.position.set(pos.x, 4, pos.z);
         bLeaf.castShadow = true;
         bLeaf.receiveShadow = true;
         treeGroup.add(bLeaf);
 
-        //Top Leaves
+        //top leaves
         const tLeaf = new THREE.Mesh(topLeafGeo, leafMat);
         tLeaf.position.set(pos.x, 6, pos.z);
         tLeaf.castShadow = true;
