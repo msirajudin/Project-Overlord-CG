@@ -148,7 +148,7 @@ function createGround() {
 }
 createGround(); 
 
-// Hamsuke (COMPLIANCE VERSION: Strict to Specs)
+// Hamsuke
 function createHamsuke() {
     const hamsukeGroup = new THREE.Group();
 
@@ -158,8 +158,6 @@ function createHamsuke() {
     const texSide = texLoader.load('./assets/textures/hamsuke/side.png');
     const texTopBack = texLoader.load('./assets/textures/hamsuke/top&back.png');
     
-    // a. BODY
-    // Spec: Box(2,2,2), Pos(3, 1, -1), Rot(0, PI/8, 0)
     const bodyMaterials = [
         new THREE.MeshPhongMaterial({ map: texSide }),        
         new THREE.MeshPhongMaterial({ map: texSide }),      
@@ -178,8 +176,6 @@ function createHamsuke() {
     hamsukeBodyMesh.userData = { texHappy: texFrontHappy, texSad: texFrontSad };
     hamsukeGroup.add(hamsukeBodyMesh);
 
-    // b. TAIL MAIN
-    // Spec: Box(0.6, 2.8, 0.6), Pos(2.6, 1.4, -2.25), Rot(0, PI/8, 0)
     const tailMainGeo = new THREE.BoxGeometry(0.6, 2.8, 0.6);
     const tailMat = new THREE.MeshPhongMaterial({ color: 0x023020 }); 
     const tailMain = new THREE.Mesh(tailMainGeo, tailMat);
@@ -188,8 +184,6 @@ function createHamsuke() {
     tailMain.castShadow = true;
     hamsukeGroup.add(tailMain);
 
-    // c. TAIL EXTENSION (Yang tadi hilang)
-    // Spec: Box(0.6, 0.6, 1.4), Pos(2.44, 2.8, -2.62), Rot(0, PI/8, PI/2)
     const tailExtGeo = new THREE.BoxGeometry(0.6, 0.6, 1.4);
     const tailExt = new THREE.Mesh(tailExtGeo, tailMat);
     tailExt.position.set(2.44, 2.8, -2.62);
@@ -197,8 +191,6 @@ function createHamsuke() {
     tailExt.castShadow = true;
     hamsukeGroup.add(tailExt);
 
-    // d. LEFT EAR
-    // Spec: Cone(0.2, 0.7, 128), Pos(4.05, 2.2, -0.6), Rot(0, 0, -PI/8)
     const earGeo = new THREE.ConeGeometry(0.2, 0.7, 128); 
     const earMatLeft = new THREE.MeshPhongMaterial({ color: 0x023020 }); 
     const earL = new THREE.Mesh(earGeo, earMatLeft);
@@ -207,8 +199,6 @@ function createHamsuke() {
     earL.castShadow = true;
     hamsukeGroup.add(earL);
 
-    // e. RIGHT EAR
-    // Spec: Cone(0.2, 0.7, 128), Pos(2.5, 2.2, 0), Rot(0, 0, -PI/8)
     const earMatRight = new THREE.MeshPhongMaterial({ color: 0x6B6860 }); 
     const earR = new THREE.Mesh(earGeo, earMatRight);
     earR.position.set(2.5, 2.2, 0);
@@ -219,7 +209,6 @@ function createHamsuke() {
     return hamsukeGroup;
 }
 const hamsuke = createHamsuke();
-// PENTING: Group harus di 0,0,0 agar koordinat part di atas valid
 hamsuke.position.set(0, 0, 0); 
 scene.add(hamsuke);
 
