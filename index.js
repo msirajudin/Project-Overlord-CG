@@ -59,13 +59,13 @@ document.body.appendChild(renderer.domElement);
 
 //camera setup
 thirdPersonCam = new THREE.PerspectiveCamera(
-    75, window.innerWidth / window.innerHeight, 0.1, 1000
+    75, window.innerWidth / window.innerHeight, 0.1, 2000
 );
 thirdPersonCam.position.set(6, 3, 5);
 thirdPersonCam.lookAt(0, 0, 0);
 
 firstPersonCam = new THREE.PerspectiveCamera(
-    75, window.innerWidth / window.innerHeight, 0.1, 1000
+    75, window.innerWidth / window.innerHeight, 0.1, 2000
 );
 firstPersonCam.position.set(0, 1.8, 0); //sebelumnya menggunakan (0, 100, 13) agar sesuai pada wajah yg dimana sesuai parameter soal itu terlihat seperti di kaki, namun kami menyesuaikan kembali dengan parameter soal yakni (0, 1.8, 0). terima kasih 
 
@@ -148,7 +148,7 @@ function createGround() {
 }
 createGround(); 
 
-// Hamsuke
+// Hamsuke, 100% mengikuti parameter soal walau hasilnya memiliki kejanggalan di bagian telinga karena berbeda warna dan memiliki arah dan posisi yang kurang tepat. 
 function createHamsuke() {
     const hamsukeGroup = new THREE.Group();
 
