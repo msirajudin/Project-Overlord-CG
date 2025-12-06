@@ -67,7 +67,7 @@ thirdPersonCam.lookAt(0, 0, 0);
 firstPersonCam = new THREE.PerspectiveCamera(
     75, window.innerWidth / window.innerHeight, 0.1, 1000
 );
-firstPersonCam.position.set(0, 100, 13); 
+firstPersonCam.position.set(0, 1.8, 0); //sebelumnya menggunakan (0, 100, 13) agar sesuai pada wajah yg dimana sesuai parameter soal itu terlihat seperti di kaki, namun kami menyesuaikan kembali dengan parameter soal yakni (0, 1.8, 0). terima kasih 
 
 currentCamera = thirdPersonCam;
 
@@ -107,7 +107,8 @@ gltfLoader.load('./assets/models/momonga_ainz_ooal_gown/scene.gltf',
         model.rotation.set(0, Math.PI/2, 0);
 
         momongaObj.add(firstPersonCam);
-        firstPersonCam.rotation.set(0, -Math.PI, 0);
+        // firstPersonCam.rotation.set(0, -Math.PI, 0); sebelumnya menggunakan ini agar posisi sedikit menghadap kedepan, namun kami jadi ikut parameter soal
+        firstPersonCam.lookAt(1, 1.8, 0); //sesuai parameter soal
 
         model.traverse((node) => {
             if(node.isMesh) {
@@ -147,18 +148,18 @@ function createGround() {
 }
 createGround(); 
 
-// Hamsuke
+// Hamsuke (COMPLIANCE VERSION: Strict to Specs)
 function createHamsuke() {
     const hamsukeGroup = new THREE.Group();
 
-    //Load Textures
     const texLoader = new THREE.TextureLoader();
     const texFrontHappy = texLoader.load('./assets/textures/hamsuke/front_happy.png');
     const texFrontSad = texLoader.load('./assets/textures/hamsuke/front_sad.png');
     const texSide = texLoader.load('./assets/textures/hamsuke/side.png');
     const texTopBack = texLoader.load('./assets/textures/hamsuke/top&back.png');
     
-    //Body
+    // a. BODY
+    // Spec: Box(2,2,2), Pos(3, 1, -1), Rot(0, PI/8, 0)
     const bodyMaterials = [
         new THREE.MeshPhongMaterial({ map: texSide }),        
         new THREE.MeshPhongMaterial({ map: texSide }),      
@@ -167,48 +168,59 @@ function createHamsuke() {
         new THREE.MeshPhongMaterial({ map: texFrontHappy }),     
         new THREE.MeshPhongMaterial({ map: texTopBack })     
     ];
-
-    const bodyGeo = new THREE.BoxGeometry(3, 2.5, 3); 
+    const bodyGeo = new THREE.BoxGeometry(2, 2, 2); 
     hamsukeBodyMesh = new THREE.Mesh(bodyGeo, bodyMaterials);
+    hamsukeBodyMesh.position.set(3, 1, -1);
+    hamsukeBodyMesh.rotation.set(0, Math.PI / 8, 0);
     hamsukeBodyMesh.castShadow = true;
     hamsukeBodyMesh.receiveShadow = true;
     
-    hamsukeBodyMesh.userData = {
-        texHappy: texFrontHappy,
-        texSad: texFrontSad
-    };
+    hamsukeBodyMesh.userData = { texHappy: texFrontHappy, texSad: texFrontSad };
     hamsukeGroup.add(hamsukeBodyMesh);
 
-    //Telinga
+    // b. TAIL MAIN
+    // Spec: Box(0.6, 2.8, 0.6), Pos(2.6, 1.4, -2.25), Rot(0, PI/8, 0)
+    const tailMainGeo = new THREE.BoxGeometry(0.6, 2.8, 0.6);
+    const tailMat = new THREE.MeshPhongMaterial({ color: 0x023020 }); 
+    const tailMain = new THREE.Mesh(tailMainGeo, tailMat);
+    tailMain.position.set(2.6, 1.4, -2.25);
+    tailMain.rotation.set(0, Math.PI / 8, 0);
+    tailMain.castShadow = true;
+    hamsukeGroup.add(tailMain);
+
+    // c. TAIL EXTENSION (Yang tadi hilang)
+    // Spec: Box(0.6, 0.6, 1.4), Pos(2.44, 2.8, -2.62), Rot(0, PI/8, PI/2)
+    const tailExtGeo = new THREE.BoxGeometry(0.6, 0.6, 1.4);
+    const tailExt = new THREE.Mesh(tailExtGeo, tailMat);
+    tailExt.position.set(2.44, 2.8, -2.62);
+    tailExt.rotation.set(0, Math.PI / 8, Math.PI / 2);
+    tailExt.castShadow = true;
+    hamsukeGroup.add(tailExt);
+
+    // d. LEFT EAR
+    // Spec: Cone(0.2, 0.7, 128), Pos(4.05, 2.2, -0.6), Rot(0, 0, -PI/8)
     const earGeo = new THREE.ConeGeometry(0.2, 0.7, 128); 
-    const earMatLeft = new THREE.MeshPhongMaterial({ color: 0x6B6860 }); 
+    const earMatLeft = new THREE.MeshPhongMaterial({ color: 0x023020 }); 
     const earL = new THREE.Mesh(earGeo, earMatLeft);
-    earL.position.set(-1.2, 1.5, 1.3); 
-    earL.rotation.set(0, 0, 0.2);     
+    earL.position.set(4.05, 2.2, -0.6);
+    earL.rotation.set(0, 0, -Math.PI / 8);     
     earL.castShadow = true;
     hamsukeGroup.add(earL);
 
+    // e. RIGHT EAR
+    // Spec: Cone(0.2, 0.7, 128), Pos(2.5, 2.2, 0), Rot(0, 0, -PI/8)
     const earMatRight = new THREE.MeshPhongMaterial({ color: 0x6B6860 }); 
     const earR = new THREE.Mesh(earGeo, earMatRight);
-    earR.position.set(1.2, 1.5, 1.3);
-    earR.rotation.set(0, 0, -0.2);    
+    earR.position.set(2.5, 2.2, 0);
+    earR.rotation.set(0, 0, -Math.PI / 8);    
     earR.castShadow = true;
     hamsukeGroup.add(earR);
 
-    //Tail
-    const tailGeo = new THREE.BoxGeometry(0.6, 2.8, 0.6);
-    const tailMat = new THREE.MeshPhongMaterial({ color: 0x023020 }); 
-    const tailMesh = new THREE.Mesh(tailGeo, tailMat);
-    
-    tailMesh.position.set(0.1, 0.5, -1.75);
-    tailMesh.rotation.set(Math.PI, 0, 0);    
-    tailMesh.castShadow = true;
-    hamsukeGroup.add(tailMesh);
     return hamsukeGroup;
 }
 const hamsuke = createHamsuke();
-hamsuke.position.set(1.8, 1.3, -1.95); 
-hamsuke.rotation.set(0, 0.5, 0); 
+// PENTING: Group harus di 0,0,0 agar koordinat part di atas valid
+hamsuke.position.set(0, 0, 0); 
 scene.add(hamsuke);
 
 // Pohon #StopTebangPohonMasal = longsor
@@ -318,7 +330,7 @@ function createSpellCircle() {
     const pointerGeo = new THREE.BoxGeometry(0.05, 4, 0.01);
     const p1 = new THREE.Mesh(pointerGeo, spellMat);
     p1.rotation.set(Math.PI/2, 0, Math.PI/2); 
-    p1.position.set(0, 0.02, 0); 
+    p1.position.set(0, 0.01, 0); 
     spellGroup.add(p1);
 
     const p2 = new THREE.Mesh(pointerGeo, spellMat);
